@@ -9,18 +9,7 @@
 
 - asdasd asd asd sad asdasd asdsad.
 
-[devRabab](https://asas/as//as)
+[rrrrrr](https:/asasdasdsadsad)
 
-- asgdgasd sahdasy tyyuas yyyd aueuu dhd
-- Next tips its the nest
-- SOryy asggags adfhfhe ryfye dhfdytr grghd
-- Add new real tips
-
-[testrabbani](https:/asas/as/a/s/d)
-
-- Add Tips to the asas
-- Next tips its the nest
-
-[iamsms](https:/sasasdasd)
-
-- You should name yourself
+- This is a perfect tips
+- Add Tips to a database schema
