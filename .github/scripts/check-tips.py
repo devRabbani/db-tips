@@ -7,80 +7,74 @@ from difflib import SequenceMatcher
 def extract_tips(content):
     pattern = r'\[(.*?)\]\((.*?)\)\s*\n((?:- .*(?:\n|$))+)' 
     matches = re.findall(pattern, content)
-  
     return [
         (author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')])
         for author, link, tips in matches
     ]
 
-def is_valid_tip(tip):
-    return len(tip) <= 280
-
 def check_duplicates(new_tips, existing_tips):
-    duplicates = []
-    for new_tip in new_tips:
-        for existing_tip in existing_tips:
-            similarity = SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()
-            if similarity > 0.8:  # 80% similarity threshold
-                duplicates.append((new_tip, existing_tip, similarity))
-    return duplicates
+    return [
+        (new_tip, existing_tip, similarity)
+        for new_tip in new_tips
+        for existing_tip in existing_tips
+        # 80% threshold
+        if (similarity := SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()) > 0.8 
+    ]
+
+def extract_changes(patch_content):
+    added, removed = [], []
+    for line in patch_content.splitlines():
+        if line.startswith('+') and not line.startswith('+++'):
+            added.append(line[1:].strip())
+        elif line.startswith('-') and not line.startswith('---'):
+            removed.append(line[1:].strip())
+    return "\n".join(added), "\n".join(removed)
 
 def main():
-    # Read the PR event
     with open(os.environ['GITHUB_EVENT_PATH']) as f:
         event = json.load(f)
     
     pr_number = event['pull_request']['number']
     repo_name = event['repository']['full_name']
     
+    # Authenticate with GitHub and fetch PR details
     g = Github(os.environ['GITHUB_TOKEN'])
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_number)
     
-    files = pr.get_files()
-    tips_file = next((file for file in files if file.filename == 'tips.md'), None)
-    
+    # Look for changes in 'tips.md'
+    tips_file = next((file for file in pr.get_files() if file.filename == 'tips.md'), None)
     if not tips_file:
         pr.create_issue_comment("No changes to tips.md found in this PR.")
         return
     
-    new_content = tips_file.patch
-    print("new content",new_content,tips_file)
-    # Extract new tips
-    new_tips = extract_tips(new_content)
-    print("New tips found",new_tips)
-    # Check format and length
-    format_errors = []
-    for author, link, tips in new_tips:
-        if not author or not link:
-            format_errors.append("Author name or link is missing")
-        for tip in tips:
-            if not is_valid_tip(tip):
-                format_errors.append(f"Tip by {author} exceeds 280 characters: {tip}")
+    # Extract added and removed content from the patch
+    added_content, removed_content = extract_changes(tips_file.patch)
     
-    # Check for duplicates
+    # Extract new and removed tips
+    new_tips = extract_tips(added_content)
+    removed_tips = extract_tips(removed_content)
+    print("new tips",new_tips,"removed tips",removed_tips)
+    # Read existing tips from tips.md
     with open('tips.md', 'r') as f:
-        existing_content = f.read()
-    existing_tips = extract_tips(existing_content)
-    print("existing tips",existing_tips)
-    all_existing_tips = [tip for _, _, tips in existing_tips for tip in tips]
+        existing_tips = extract_tips(f.read())
     
+    all_existing_tips = {tip for _, _, tips in existing_tips for tip in tips}
+    for _, _, tips in removed_tips:
+        all_existing_tips.difference_update(tips)
+    
+    # Check for duplicate tips
     duplicates = check_duplicates([tip for _, _, tips in new_tips for tip in tips], all_existing_tips)
     
-    # Create comment
-    comment = "## Tips Check Results\n\n"
-    if format_errors:
-        comment += "### Format Errors\n"
-        for error in format_errors:
-            comment += f"- {error}\n"
-    
+    # Construct result comment
     if duplicates:
-        comment += "\n### Potential Duplicate Tips\n"
-        for new_tip, existing_tip, similarity in duplicates:
-            comment += f"- New tip: \"{new_tip}\"\n  Similar to: \"{existing_tip}\"\n  Similarity: {similarity:.2%}\n\n"
-    
-    if not format_errors and not duplicates:
-        comment += "All tips are correctly formatted and unique. Good job!"
+        comment = "### Potential Duplicate Tips\n"
+        comment += "\n".join(
+            f"- New tip: \"{new_tip}\"\n  Similar to: \"{existing_tip}\"\n  Similarity: {similarity:.2%}"
+            for new_tip, existing_tip, similarity in duplicates
+        )
+    else:
+        comment = "No duplicates found. All new tips are unique."
     
     pr.create_issue_comment(comment)
 
