@@ -19,7 +19,7 @@ jobs:
       - name: Check tip format and duplicates
         run: |
           awk '
-          BEGIN { FS="\n"; RS="---"; errors=0; seen = ""; }
+          BEGIN { FS="\n"; RS="---"; errors=0; delete seen; }
           NR > 1 {
             author = ""
             tips = ""
