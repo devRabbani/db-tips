@@ -1,0 +1,52 @@
+name: Process Tips
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - "tips.md"
+  pull_request_target:
+    types: [closed]
+    paths:
+      - "tips.md"
+
+jobs:
+  check-tips:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML
+      - name: Check tips format
+        run: python .github/scripts/check-tips.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-files:
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML
+      - name: Update contributors and tips
+        run: python .github/scripts/update-on-merge.py
+      - name: Commit and push if changed
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update contributors and latest tips" && git push)
