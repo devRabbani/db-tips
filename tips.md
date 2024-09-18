@@ -13,4 +13,5 @@
 
 - asgdgasd sahdasy tyyuas yyyd aueuu dhd
 - Next tips its the nest
-- SOryy asggags adfhfhe ryfye dhfdytr grghd gtgthgh tghhthg tghthg
+- SOryy asggags adfhfhe ryfye dhfdytr grghd
+- Add new real tips
