@@ -1,7 +1,7 @@
 import re
 
 def extract_tips(content):
-    pattern = r'\[(.*?)\]$$(.*?)$$\s*\n\n((?:- .*\n)+)'
+    pattern = r'\[(.*?)\]\((.*?)\)\s*\n- (.*?)(?=\n\[\w+\]\(.*?\)|$)'
     matches = re.findall(pattern, content, re.DOTALL)
     return [(author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, link, tips in matches]
 
