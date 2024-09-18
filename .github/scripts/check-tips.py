@@ -5,32 +5,31 @@ from github import Github
 from difflib import SequenceMatcher
 
 def extract_tips(content):
-    pattern = r'\[(.*?)\]\((.*?)\)\s*\n((?:- .*(?:\n|$))+)' 
-    matches = re.findall(pattern, content)
-    return [
-        (author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')])
-        for author, link, tips in matches
-    ]
+    pattern = r'- (.*)'
+    return [match.strip() for match in re.findall(pattern, content)]
 
 def check_duplicates(new_tips, existing_tips):
     return [
         (new_tip, existing_tip, similarity)
         for new_tip in new_tips
         for existing_tip in existing_tips
-        # 80% threshold
-        if (similarity := SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()) > 0.8 
+        if (similarity := SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()) > 0.8
     ]
 
 def extract_changes(patch_content):
     added, removed = [], []
-    for line in patch_content.splitlines():
+    lines = patch_content.splitlines()
+    
+    for line in lines:
         if line.startswith('+') and not line.startswith('+++'):
-            added.append(line[1:].strip())
+            added.append(line[1:].strip())  # Extract added content without '+'
         elif line.startswith('-') and not line.startswith('---'):
-            removed.append(line[1:].strip())
+            removed.append(line[1:].strip())  # Extract removed content without '-'
+    
     return "\n".join(added), "\n".join(removed)
 
 def main():
+    # Load PR event data
     with open(os.environ['GITHUB_EVENT_PATH']) as f:
         event = json.load(f)
     
@@ -54,17 +53,16 @@ def main():
     # Extract new and removed tips
     new_tips = extract_tips(added_content)
     removed_tips = extract_tips(removed_content)
-    print("new tips",new_tips,"removed tips",removed_tips)
+    print("new tips",new_tips,"removed tips",removed_tips,'added ',added_content,'removed',removed_content)
     # Read existing tips from tips.md
     with open('tips.md', 'r') as f:
         existing_tips = extract_tips(f.read())
     
-    all_existing_tips = {tip for _, _, tips in existing_tips for tip in tips}
-    for _, _, tips in removed_tips:
-        all_existing_tips.difference_update(tips)
+    # Prepare a list of all existing tips, excluding removed ones
+    all_existing_tips = set(existing_tips).difference(removed_tips)
     
     # Check for duplicate tips
-    duplicates = check_duplicates([tip for _, _, tips in new_tips for tip in tips], all_existing_tips)
+    duplicates = check_duplicates(new_tips, all_existing_tips)
     
     # Construct result comment
     if duplicates:
