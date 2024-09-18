@@ -1,24 +1,23 @@
 name: Process Tips
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-    paths:
-      - "tips.md"
   pull_request_target:
-    types: [closed]
+    types: [opened, synchronize, closed]
     paths:
       - "tips.md"
 
 permissions:
-  issues: write
+  contents: read
+  pull-requests: write
 
 jobs:
   check-tips:
-    if: github.event_name == 'pull_request'
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -33,7 +32,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update-files:
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PyYAML PyGithub
+          pip3 install PyYAML PyGithub
       - name: Update contributors and tips
         run: python .github/scripts/update-on-merge.py
       - name: Commit and push if changed
