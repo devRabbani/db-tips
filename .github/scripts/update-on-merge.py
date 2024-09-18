@@ -1,16 +1,16 @@
 import re
 
 def extract_tips(content):
-    pattern = r'\[(.*?)\]\((.*?)\)\s*\n- (.*?)(?=\n\[\w+\]\(.*?\)|$)'
+    pattern = r'\[(.*?)\]$$(.*?)$$\s*\n((?:- .*\n)+)'
     matches = re.findall(pattern, content, re.DOTALL)
-    return [(author.strip(), link.strip(), tip.strip()) for author, link, tip in matches]
+    return [(author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, link, tips in matches]
 
 def update_readme(tips):
     with open('README.md', 'r') as f:
         content = f.read()
     
- 
-    tips_section = "\n".join(f"- {tip}" for _, _, tip in tips[-10:])  # Last 10 tips
+    all_tips = [tip for _, _, author_tips in tips for tip in author_tips]
+    tips_section = "\n".join(f"- {tip}" for tip in all_tips[-10:])  # Last 10 tips
     new_content = re.sub(r'## Latest Tips\n\n.*', f"## Latest Tips\n\n{tips_section}", content, flags=re.DOTALL)
     
     with open('README.md', 'w') as f:
@@ -33,13 +33,14 @@ def main():
         content = f.read()
     
     tips = extract_tips(content)
-    print("Tips extracted",tips)
+    print("Tips extracted:", tips)
+    
     # Update README
     update_readme(tips)
     
     # Update contributors
-    contributors = [(author, link) for author, link, _ in tips]
-    print("Contributors updated",contributors)
+    contributors = set((author, link) for author, link, _ in tips)
+    print("Contributors updated:", contributors)
     update_contributors(contributors)
 
 if __name__ == "__main__":

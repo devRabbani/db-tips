@@ -1,11 +1,12 @@
 import re
 import os
+import json
 from github import Github
 
 def extract_tips(content):
-    pattern = r'---\nauthor:\s*(.*?)\n---\n\n((?:- .*\n)+)'
+    pattern = r'\[(.*?)\]$$(.*?)$$\s*\n((?:- .*\n)+)'
     matches = re.findall(pattern, content, re.DOTALL)
-    return [(author.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, tips in matches]
+    return [(author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, link, tips in matches]
 
 def is_valid_tip(tip):
     return len(tip) <= 280
@@ -18,12 +19,11 @@ def check_duplicates(new_tips, existing_tips):
     return duplicates
 
 def main():
-    # Read the PR diff
+    # Read the PR event
     with open(os.environ['GITHUB_EVENT_PATH']) as f:
-        import json
         event = json.load(f)
     
-    pr_number = event['number']
+    pr_number = event['pull_request']['number']
     repo_name = event['repository']['full_name']
     
     g = Github(os.environ['GITHUB_TOKEN'])
@@ -44,9 +44,9 @@ def main():
     
     # Check format and length
     format_errors = []
-    for author, tips in new_tips:
-        if not author:
-            format_errors.append("Author name is missing")
+    for author, link, tips in new_tips:
+        if not author or not link:
+            format_errors.append("Author name or link is missing")
         for tip in tips:
             if not is_valid_tip(tip):
                 format_errors.append(f"Tip by {author} exceeds 280 characters: {tip}")
@@ -55,9 +55,9 @@ def main():
     with open('tips.md', 'r') as f:
         existing_content = f.read()
     existing_tips = extract_tips(existing_content)
-    all_existing_tips = [tip for _, tips in existing_tips for tip in tips]
+    all_existing_tips = [tip for _, _, tips in existing_tips for tip in tips]
     
-    duplicates = check_duplicates([tip for _, tips in new_tips for tip in tips], all_existing_tips)
+    duplicates = check_duplicates([tip for _, _, tips in new_tips for tip in tips], all_existing_tips)
     
     # Create comment
     comment = "## Tips Check Results\n\n"
