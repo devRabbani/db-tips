@@ -1,8 +1,9 @@
 import re
 
 def extract_tips(content):
-    pattern = r'\[(.*?)\]\((.*?)\)\s*\n(- .*(?:\n- .*)*)'
-    matches = re.findall(pattern, content, re.DOTALL)
+    pattern = r'\[(.*?)\]\((.*?)\)\s*\n((?:- .*(?:\n|$))+)' 
+    matches = re.findall(pattern, content)
+  
     return [
         (author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')])
         for author, link, tips in matches
@@ -14,6 +15,8 @@ def update_readme(tips):
     
     all_tips = [tip for _, _, author_tips in tips for tip in author_tips]
     tips_section = "\n".join(f"- {tip}" for tip in all_tips[-10:])  # Last 10 tips
+
+    print("all tips",all_tips,'tips section',tips_section)
     new_content = re.sub(r'## Latest Tips\n\n.*?(?=\n\n|\Z)', f"## Latest Tips\n\n{tips_section}", content, flags=re.DOTALL)
     
     with open('README.md', 'w') as f:
