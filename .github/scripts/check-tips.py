@@ -2,9 +2,10 @@ import re
 import os
 import json
 from github import Github
+from difflib import SequenceMatcher
 
 def extract_tips(content):
-    pattern = r'\[(.*?)\]$$(.*?)$$\s*\n((?:- .*\n)+)'
+    pattern = r'\[(.*?)\]$$(.*?)$$\s*\n\n((?:- .*\n)+)'
     matches = re.findall(pattern, content, re.DOTALL)
     return [(author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, link, tips in matches]
 
@@ -14,8 +15,10 @@ def is_valid_tip(tip):
 def check_duplicates(new_tips, existing_tips):
     duplicates = []
     for new_tip in new_tips:
-        if new_tip in existing_tips:
-            duplicates.append(new_tip)
+        for existing_tip in existing_tips:
+            similarity = SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()
+            if similarity > 0.8:  # 80% similarity threshold
+                duplicates.append((new_tip, existing_tip, similarity))
     return duplicates
 
 def main():
@@ -67,9 +70,9 @@ def main():
             comment += f"- {error}\n"
     
     if duplicates:
-        comment += "\n### Duplicate Tips\n"
-        for tip in duplicates:
-            comment += f"- {tip}\n"
+        comment += "\n### Potential Duplicate Tips\n"
+        for new_tip, existing_tip, similarity in duplicates:
+            comment += f"- New tip: \"{new_tip}\"\n  Similar to: \"{existing_tip}\"\n  Similarity: {similarity:.2%}\n\n"
     
     if not format_errors and not duplicates:
         comment += "All tips are correctly formatted and unique. Good job!"
