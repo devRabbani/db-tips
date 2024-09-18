@@ -13,3 +13,4 @@
 
 - asgdgasd sahdasy tyyuas yyyd aueuu dhd
 - Next tips its the nest
+- Add New Tips to the asas
