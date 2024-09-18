@@ -10,6 +10,9 @@ on:
     paths:
       - "tips.md"
 
+permissions:
+  issues: write
+
 jobs:
   check-tips:
     if: github.event_name == 'pull_request'
