@@ -9,14 +9,14 @@ def extract_tips(content):
     return [match.strip() for match in re.findall(pattern, content)]
 
 def check_duplicates(new_tips, existing_tips):
-    duplicates = []
-    for new_tip in new_tips:
-        for existing_tip in existing_tips:
-            if new_tip.lower() != existing_tip.lower():  # Avoid comparing the same tip
-                similarity = SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()
-                if similarity > 0.8:  # 80% similarity threshold
-                    duplicates.append((new_tip, existing_tip, similarity))
-    return duplicates
+
+    # 80% threshold for similarity
+    return [
+        (new_tip, existing_tip, similarity)
+        for new_tip in new_tips
+        for existing_tip in existing_tips
+        if (similarity := SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()) > 0.8
+    ]
 
 
 def extract_changes(patch_content):
@@ -56,11 +56,14 @@ def main():
     # Extract new and removed tips
     new_tips = extract_tips(added_content)
     removed_tips = extract_tips(removed_content)
-    print("new tips",new_tips,"removed tips",removed_tips,'added ',added_content,'removed',removed_content)
-    # Read existing tips from tips.md
-    with open('tips.md', 'r') as f:
-        existing_tips = extract_tips(f.read())
-    
+    print("new tips",new_tips,"removed tips",removed_tips)
+
+    # Fetch the tips.md file from the main branch
+ 
+    main_branch_file = repo.get_contents('tips.md', ref='main')
+    existing_tips_content = main_branch_file.decoded_content.decode('utf-8')
+    existing_tips = extract_tips(existing_tips_content)
+
     # Prepare a list of all existing tips, excluding removed ones
     all_existing_tips = set(existing_tips).difference(removed_tips)
     print("all existing tips",all_existing_tips,'existing tips',existing_tips)
