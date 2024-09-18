@@ -9,12 +9,15 @@ def extract_tips(content):
     return [match.strip() for match in re.findall(pattern, content)]
 
 def check_duplicates(new_tips, existing_tips):
-    return [
-        (new_tip, existing_tip, similarity)
-        for new_tip in new_tips
-        for existing_tip in existing_tips
-        if (similarity := SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()) > 0.8
-    ]
+    duplicates = []
+    for new_tip in new_tips:
+        for existing_tip in existing_tips:
+            if new_tip.lower() != existing_tip.lower():  # Avoid comparing the same tip
+                similarity = SequenceMatcher(None, new_tip.lower(), existing_tip.lower()).ratio()
+                if similarity > 0.8:  # 80% similarity threshold
+                    duplicates.append((new_tip, existing_tip, similarity))
+    return duplicates
+
 
 def extract_changes(patch_content):
     added, removed = [], []
@@ -60,7 +63,7 @@ def main():
     
     # Prepare a list of all existing tips, excluding removed ones
     all_existing_tips = set(existing_tips).difference(removed_tips)
-    
+    print("all existing tips",all_existing_tips,'existing tips',existing_tips)
     # Check for duplicate tips
     duplicates = check_duplicates(new_tips, all_existing_tips)
     
