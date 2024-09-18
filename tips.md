@@ -2,10 +2,10 @@
 
 ---
 
-author: Your GitHub Username
+author: johndoe
 
 ---
 
-- Your first tip here (max 280 characters)
-- Your second tip here (max 280 characters)
-- Add more tips as needed
+- Use indexes to speed up query performance.
+- Normalize your database to eliminate redundancy.
+- Regularly back up your database to prevent data loss.
