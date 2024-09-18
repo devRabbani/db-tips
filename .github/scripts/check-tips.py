@@ -45,7 +45,7 @@ def main():
         return
     
     new_content = tips_file.patch
-    print("new content",new_content,tips_file.content)
+    print("new content",new_content,tips_file)
     # Extract new tips
     new_tips = extract_tips(new_content)
     print("New tips found",new_tips)
