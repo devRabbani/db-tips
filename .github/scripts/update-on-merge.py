@@ -16,6 +16,9 @@ def update_readme(tips):
     
     new_content = re.sub(r'## Latest Tips\n\n.*', latest_tips, content, flags=re.DOTALL)
     
+     # Print for debugging
+    print("New README content:\n", new_content)
+
     with open('README.md', 'w') as f:
         f.write(new_content)
 
@@ -26,6 +29,8 @@ def update_contributors(contributors):
     for contributor in contributors:
         if contributor not in content:
             content += f"\n- @{contributor}"
+     # Print for debugging
+    print("New Contributors content:\n", content)
     
     with open('contributors.md', 'w') as f:
         f.write(content)

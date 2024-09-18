@@ -10,7 +10,6 @@ Welcome to the Database Tips Repository! This is a community-driven collection o
 - [Contributors](contributors.md)
 - [All tips](tips.md)
 
-
 ## Latest Tips <a name="latest-tips"></a>
 
 [See all tips](tips.md)
@@ -32,7 +31,8 @@ We welcome contributions from everyone! Here's how you can add your tips:
    - Add more tips as needed
    - Ensure each tip is no more than 280 characters
    - Create a pull request
- 
+   ```
+
 ## Guidelines <a name="guidelines"></a>
 
 - Keep tips concise and focused on a single concept or best practice
