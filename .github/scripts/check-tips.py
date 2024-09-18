@@ -45,7 +45,7 @@ def main():
         return
     
     new_content = tips_file.patch
-    
+    print("new content",new_content,tips_file.content)
     # Extract new tips
     new_tips = extract_tips(new_content)
     print("New tips found",new_tips)
@@ -62,6 +62,7 @@ def main():
     with open('tips.md', 'r') as f:
         existing_content = f.read()
     existing_tips = extract_tips(existing_content)
+    print("existing tips",existing_tips)
     all_existing_tips = [tip for _, _, tips in existing_tips for tip in tips]
     
     duplicates = check_duplicates([tip for _, _, tips in new_tips for tip in tips], all_existing_tips)
