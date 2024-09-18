@@ -5,9 +5,13 @@ from github import Github
 from difflib import SequenceMatcher
 
 def extract_tips(content):
-    pattern = r'\[(.*?)\]\((.*?)\)\s*\n- (.*?)(?=\n\[\w+\]\(.*?\)|$)'
+    pattern = r'\[(.*?)\]\((.*?)\)\s*\n(- .*(?:\n- .*)*)'
     matches = re.findall(pattern, content, re.DOTALL)
-    return [(author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, link, tips in matches]
+    return [
+        (author.strip(), link.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')])
+        for author, link, tips in matches
+    ]
+
 
 def is_valid_tip(tip):
     return len(tip) <= 280
@@ -44,7 +48,7 @@ def main():
     
     # Extract new tips
     new_tips = extract_tips(new_content)
-    
+    print("New tips found",new_tips)
     # Check format and length
     format_errors = []
     for author, link, tips in new_tips:
