@@ -19,10 +19,11 @@ jobs:
       - name: Check tip format and duplicates
         run: |
           awk '
-          BEGIN { FS="\n"; RS="---"; errors=0; delete seen; }
+          BEGIN { FS="\n"; RS="---"; errors=0; }
           NR > 1 {
             author = ""
             tips = ""
+            delete seen;  # Ensure seen is reset for each section
             for (i=1; i<=NF; i++) {
               if ($i ~ /^author:/) {
                 author = $i
@@ -36,7 +37,7 @@ jobs:
                   print "Error: Duplicate tip: " $i
                   errors++
                 }
-                seen[$i] = 1
+                seen[$i] = 1  # Use seen as an associative array
               }
             }
             if (author == "") {
