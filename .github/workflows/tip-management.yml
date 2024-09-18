@@ -3,101 +3,101 @@ name: Tip Management and README Update
 on:
   pull_request:
     paths:
-      - 'tips.md'
+      - "tips.md"
   push:
     branches:
       - main
     paths:
-      - 'tips.md'
+      - "tips.md"
 
 jobs:
   check_tips_and_update:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Check tip format and duplicates
-      run: |
-        # Check for proper formatting and duplicates
-        awk '
-        BEGIN { FS="\n"; RS="---\n"; errors=0 }
-        NR > 1 {
-          author = ""
-          tips = ""
-          for (i=1; i<=NF; i++) {
-            if ($i ~ /^author:/) {
-              author = $i
-            } else if ($i ~ /^- /) {
-              tips = tips $i "\n"
-              if (length($i) > 283) {  # 280 chars + "- " prefix
-                print "Error: Tip too long (" length($i) " chars): " $i
-                errors++
+      - name: Check tip format and duplicates
+        run: |
+          # Check for proper formatting and duplicates
+          awk '
+          BEGIN { FS="\n"; RS="---"; errors=0; author=""; tips=""; }
+          NR > 1 {
+            author = ""
+            tips = ""
+            for (i=1; i<=NF; i++) {
+              if ($i ~ /^author:/) {
+                author = $i
+              } else if ($i ~ /^- /) {
+                tips = tips $i "\n"
+                if (length($i) > 283) {  # 280 chars + "- " prefix
+                  print "Error: Tip too long (" length($i) " chars): " $i
+                  errors++
+                }
+                if ($i in seen) {
+                  print "Error: Duplicate tip: " $i
+                  errors++
+                }
+                seen[$i] = 1
               }
-              if ($i in seen) {
-                print "Error: Duplicate tip: " $i
-                errors++
-              }
-              seen[$i] = 1
+            }
+            if (author == "") {
+              print "Error: Missing author for section starting at line " NR
+              errors++
+            }
+            if (tips == "") {
+              print "Error: No tips found for section starting at line " NR
+              errors++
             }
           }
-          if (author == "") {
-            print "Error: Missing author for section starting at line " NR
-            errors++
+          END {
+            if (errors > 0) {
+              exit 1
+            }
           }
-          if (tips == "") {
-            print "Error: No tips found for section starting at line " NR
-            errors++
-          }
-        }
-        END {
-          if (errors > 0) {
-            exit 1
-          }
-        }
-        ' tips.md
+          ' tips.md
 
-    - name: Update contributors
-      if: github.event_name == 'push'
-      run: |
-        # Extract unique authors from tips.md
-        authors=$(awk '/^author:/ {print $2}' tips.md | sort -u)
-        
-        # Update contributors.md
-        echo "# Contributors" > contributors.md
-        echo "" >> contributors.md
-        echo "Thank you to all our contributors!" >> contributors.md
-        echo "" >> contributors.md
-        for author in $authors; do
-          echo "- [$author](https://github.com/$author)" >> contributors.md
-        done
+      - name: Update contributors
+        if: github.event_name == 'push'
+        run: |
+          # Extract unique authors from tips.md
+          authors=$(awk '/^author:/ {print $2}' tips.md | sort -u)
 
-    - name: Update README with latest tips
-      if: github.event_name == 'push'
-      run: |
-        # Extract the latest 5 tips
-        latest_tips=$(tac tips.md | sed -n '/^---$/,/^---$/p' | tac | sed '1d;$d' | head -n 15)
-        
-        # Update the README with the latest tips
-        sed -i '/## Latest Tips/,/## How to Contribute/c\## Latest Tips\n\n```markdown\n'"$latest_tips"'\n```\n\n[See all tips](tips.md)\n\n## How to Contribute' README.md
+          # Update contributors.md
+          echo "# Contributors" > contributors.md
+          echo "" >> contributors.md
+          echo "Thank you to all our contributors!" >> contributors.md
+          echo "" >> contributors.md
+          for author in $authors; do
+            echo "- [$author](https://github.com/$author)" >> contributors.md
+          done
 
-    - name: Commit changes
-      if: github.event_name == 'push'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add contributors.md README.md
-        git commit -m "Update contributors and README" || echo "No changes to commit"
-        git push
+      - name: Update README with latest tips
+        if: github.event_name == 'push'
+        run: |
+          # Extract the latest 5 tips
+          latest_tips=$(tac tips.md | sed -n '/^---$/,/^---$/p' | tac | sed '1d;$d' | head -n 15)
 
-    - name: Comment PR
-      uses: actions/github-script@v6
-      if: github.event_name == 'pull_request'
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.name,
-            body: 'Tip format check completed. Please review any errors in the workflow output.'
-          })
+          # Update the README with the latest tips
+          sed -i '/## Latest Tips/,/## How to Contribute/c\## Latest Tips\n\n```markdown\n'"$latest_tips"'\n```\n\n[See all tips](tips.md)\n\n## How to Contribute' README.md
+
+      - name: Commit changes
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add contributors.md README.md
+          git commit -m "Update contributors and README" || echo "No changes to commit"
+          git push
+
+      - name: Comment PR
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              body: 'Tip format check completed. Please review any errors in the workflow output.'
+            })
