@@ -18,9 +18,8 @@ jobs:
 
       - name: Check tip format and duplicates
         run: |
-          # Check for proper formatting and duplicates
           awk '
-          BEGIN { FS="\n"; RS="---"; errors=0; author=""; tips=""; }
+          BEGIN { FS="\n"; RS="---"; errors=0; seen = ""; }
           NR > 1 {
             author = ""
             tips = ""
@@ -29,7 +28,7 @@ jobs:
                 author = $i
               } else if ($i ~ /^- /) {
                 tips = tips $i "\n"
-                if (length($i) > 283) {  # 280 chars + "- " prefix
+                if (length($i) > 283) {
                   print "Error: Tip too long (" length($i) " chars): " $i
                   errors++
                 }
@@ -59,10 +58,8 @@ jobs:
       - name: Update contributors
         if: github.event_name == 'push'
         run: |
-          # Extract unique authors from tips.md
           authors=$(awk '/^author:/ {print $2}' tips.md | sort -u)
 
-          # Update contributors.md
           echo "# Contributors" > contributors.md
           echo "" >> contributors.md
           echo "Thank you to all our contributors!" >> contributors.md
@@ -74,10 +71,8 @@ jobs:
       - name: Update README with latest tips
         if: github.event_name == 'push'
         run: |
-          # Extract the latest 5 tips
           latest_tips=$(tac tips.md | sed -n '/^---$/,/^---$/p' | tac | sed '1d;$d' | head -n 15)
 
-          # Update the README with the latest tips
           sed -i '/## Latest Tips/,/## How to Contribute/c\## Latest Tips\n\n```markdown\n'"$latest_tips"'\n```\n\n[See all tips](tips.md)\n\n## How to Contribute' README.md
 
       - name: Commit changes
