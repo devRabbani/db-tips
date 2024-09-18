@@ -16,3 +16,4 @@
 [testrabbani4](https:/asdasdasda/asdasdasd)
 
 - Add Tips to universe
+- Normalize your database to eliminate redundancy.
