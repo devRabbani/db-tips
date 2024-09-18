@@ -1,24 +1,18 @@
 import re
 
 def extract_tips(content):
-    pattern = r'---\nauthor:\s*(.*?)\n---\n\n((?:- .*\n)+)'
+    pattern = r'\[(.*?)\]\((.*?)\)\s*\n- (.*?)(?=\n\[\w+\]\(.*?\)|$)'
     matches = re.findall(pattern, content, re.DOTALL)
-    return [(author.strip(), [tip.strip()[2:] for tip in tips.strip().split('\n')]) for author, tips in matches]
+    return [(author.strip(), link.strip(), tip.strip()) for author, link, tip in matches]
 
 def update_readme(tips):
     with open('README.md', 'r') as f:
         content = f.read()
     
-    latest_tips = "## Latest Tips\n\n"
-    for _, author_tips in tips[-10:]:  #the last 10 tips
-        for tip in author_tips:
-            latest_tips += f"- {tip}\n"
+ 
+    tips_section = "\n".join(f"- {tip}" for _, _, tip in tips[-10:])  # Last 10 tips
+    new_content = re.sub(r'## Latest Tips\n\n.*', f"## Latest Tips\n\n{tips_section}", content, flags=re.DOTALL)
     
-    new_content = re.sub(r'## Latest Tips\n\n.*', latest_tips, content, flags=re.DOTALL)
-    
-     # Print for debugging
-    print("New README content:\n", new_content)
-
     with open('README.md', 'w') as f:
         f.write(new_content)
 
@@ -26,11 +20,10 @@ def update_contributors(contributors):
     with open('contributors.md', 'r') as f:
         content = f.read()
     
-    for contributor in contributors:
-        if contributor not in content:
-            content += f"\n- @{contributor}"
-     # Print for debugging
-    print("New Contributors content:\n", content)
+    for author, link in contributors:
+        entry = f"- [{author}]({link})"
+        if entry not in content:
+            content += f"\n{entry}"
     
     with open('contributors.md', 'w') as f:
         f.write(content)
@@ -40,12 +33,13 @@ def main():
         content = f.read()
     
     tips = extract_tips(content)
-    
+    print("Tips extracted",tips)
     # Update README
     update_readme(tips)
     
     # Update contributors
-    contributors = set(author for author, _ in tips)
+    contributors = [(author, link) for author, link, _ in tips]
+    print("Contributors updated",contributors)
     update_contributors(contributors)
 
 if __name__ == "__main__":
