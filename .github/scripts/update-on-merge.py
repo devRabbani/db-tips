@@ -16,8 +16,8 @@ def update_readme(tips):
     all_tips = [tip for _, _, author_tips in tips for tip in author_tips]
     tips_section = "\n".join(f"- {tip}" for tip in all_tips[-10:])  # Last 10 tips
 
-    print("all tips",all_tips,'tips section',tips_section)
-    new_content = re.sub(r'## Latest Tips\n\n.*?(?=\n\n|\Z)', f"## Latest Tips\n\n{tips_section}", content, flags=re.DOTALL)
+    pattern = r'(## Latest Tips <a name="latest-tips"></a>\n\n)(.*?)(?=\n\n##|\n\n\[see all\]\(tips\.md\)|\Z)'
+    new_content = re.sub(pattern, f"\\1{tips_section}", content, flags=re.DOTALL)
     
     with open('README.md', 'w') as f:
         f.write(new_content)
@@ -39,14 +39,14 @@ def main():
         content = f.read()
     
     tips = extract_tips(content)
-    print("Tips extracted:", tips)
+  
     
     # Update README
     update_readme(tips)
     
     # Update contributors
     contributors = set((author, link) for author, link, _ in tips)
-    print("Contributors updated:", contributors)
+ 
     update_contributors(contributors)
 
 if __name__ == "__main__":
