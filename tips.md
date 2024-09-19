@@ -22,7 +22,7 @@
 
 - Use meaningful names for tables and columns to make your database easier to understand.
 
-[alexBrown](https://github.com/alexBrown)
+[rajPatel](https://github.com/rajPatel)
 
 - Regularly review and clean up unused indexes to maintain optimal performance.
 - Leverage foreign keys to enforce referential integrity in your data.
@@ -34,7 +34,7 @@
 - Implement error handling in your SQL code to manage unexpected issues.
 - Optimize queries by analyzing execution plans for bottlenecks.
 
-[emilyGreen](https://github.com/emilyGreen)
+[nehaSharma](https://github.com/nehaSharma)
 
 - Test queries with a representative dataset to ensure they perform well under load.
 - Use database profiling tools to identify slow queries and optimize them.
@@ -46,7 +46,7 @@
 - Store backups in multiple locations for added redundancy.
 - Consider incremental backups to save time and storage space.
 
-[lauraMartin](https://github.com/lauraMartin)
+[geethaVerma](https://github.com/geethaVerma)
 
 - Implement role-based access control to restrict user permissions based on their needs.
 - Regularly update your database software to patch security vulnerabilities.
@@ -55,7 +55,7 @@
 
 - Optimize your data types for storage efficiency and performance.
 
-[sarahGarcia](https://github.com/sarahGarcia)
+[saurabhSingh](https://github.com/saurabhSingh)
 
 - Design your database with future growth in mind to accommodate increasing data volumes.
 - Use sharding to distribute data across multiple servers for scalability.
@@ -67,7 +67,7 @@
 - Set up alerts for critical performance thresholds to respond quickly to issues.
 - Regularly review logs to identify patterns and recurring issues.
 
-[chrisLewis](https://github.com/chrisLewis)
+[anjaliSharma](https://github.com/anjaliSharma)
 
 - Consider database replication for high availability and load balancing.
 - Regularly test your failover procedures to ensure system resilience.
