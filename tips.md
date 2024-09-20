@@ -12,3 +12,17 @@
 - Adjust database configuration settings for optimal performance based on workload.
 - Employ transactions to ensure data consistency and rollback on errors.
 - Continuously monitor and analyze database performance metrics to identify and address bottlenecks.
+
+[tharuAnish](https://github.com/tharuAnish)
+
+- Use foreign keys to maintain referential integrity.
+- Select the most suitable data types for columns to optimize storage and improve performance.
+- Specify only necessary columns in queries.
+- Regularly adjust and remove unused indexes.
+- Consider selective denormalization for read performance.
+- Use stored procedures for complex operations to reduce network traffic and improve security.
+- Manage locking strategies to prevent deadlocks.
+- Keep database statistics updated to help the query planner make informed decisions.
+- Use read replicas to handle read-heavy loads.
+- Schedule regular maintenance like reindexing.
+- Regularly refactor your database schema to keep it efficient and aligned with evolving application needs.
